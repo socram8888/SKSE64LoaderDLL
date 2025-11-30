@@ -20,9 +20,10 @@ work, which they do not when launched via `skse64_loader.exe`
 Installation
 ------------
 
+  - Follow the [SKSE64](https://www.nexusmods.com/skyrimspecialedition/mods/30379) install instructions
+  - Follow the [SSE Engine Fixes](https://www.nexusmods.com/skyrimspecialedition/mods/17230) install instructions
   - Download the archive
   - Unpack it on your game folder
   - Now you should have `Data\DLLPlugins\SKSE64LoaderDLL.dll`
 
 To uninstall, simply remove that DLL.
-
