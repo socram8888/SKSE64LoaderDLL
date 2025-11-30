@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <fstream>
 #include <iostream>
+#include <iomanip>
 
 using namespace std;
 
@@ -56,6 +57,32 @@ string BuildSKSEDLLName(string version) {
 	return dllName;
 }
 
+enum class LoadLibraryFailType {
+	Error,
+	Exception
+};
+
+typedef struct {
+	LoadLibraryFailType type;
+	unsigned long code;
+} LoadLibraryFail;
+
+// Need this pure C function without any C++ shit to avoid "C2712: cannot use __try in functions that require object unwinding"
+HMODULE LoadLibraryChecked(const char *dllName, LoadLibraryFail* fail) {
+	__try {
+		HMODULE lib = LoadLibraryA(dllName);
+		if (!lib) {
+			fail->type = LoadLibraryFailType::Error;
+			fail->code = GetLastError();
+		}
+		return lib;
+	}
+	__except (1) {
+		fail->type = LoadLibraryFailType::Exception;
+		fail->code = GetExceptionCode();
+	}
+}
+
 bool LoadSKSE() {
 	if (hSkseDLL) {
 		return TRUE;
@@ -71,14 +98,18 @@ bool LoadSKSE() {
 
 	string dllName = BuildSKSEDLLName(version);
 	log << "SKSE64 DLL: " << dllName << ". Loading... ";
+	log.flush();
 
-	hSkseDLL = LoadLibraryA(dllName.c_str());
+	LoadLibraryFail loadLibFail;
+	hSkseDLL = LoadLibraryChecked(dllName.c_str(), &loadLibFail);
 	if (!hSkseDLL) {
-		log << "failed: " << dllName << " (error " << GetLastError() << ")" << endl;
+		log << "failed with " << (loadLibFail.type == LoadLibraryFailType::Exception ? "exception" : "error") << " 0x" << hex << setw(8) << loadLibFail.code << endl;
 		return false;
 	}
 
 	log << "OK" << endl << "Calling StartSKSE... ";
+	log.flush();
+
 	PROC startSKSE = GetProcAddress(hSkseDLL, "StartSKSE");
 	if (!startSKSE) {
 		log << "method not found?" << endl;
