@@ -80,12 +80,13 @@ HMODULE LoadLibraryChecked(const char *dllName, LoadLibraryFail* fail) {
 	__except (1) {
 		fail->type = LoadLibraryFailType::Exception;
 		fail->code = GetExceptionCode();
+		return nullptr;
 	}
 }
 
 bool LoadSKSE() {
 	if (hSkseDLL) {
-		return TRUE;
+		return true;
 	}
 
 	ofstream log("skse64_loader_dll.log");
@@ -120,9 +121,13 @@ bool LoadSKSE() {
 
 	startSKSE();
 	log << "OK " << endl << "All done!" << endl;
+	return true;
 }
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved) {
+	(void)hModule;
+	(void)lpReserved;
+
 	switch (ul_reason_for_call) {
 	case DLL_PROCESS_ATTACH:
 		return LoadSKSE();
@@ -131,7 +136,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
 			FreeLibrary(hSkseDLL);
 			hSkseDLL = nullptr;
 		}
-		return TRUE;
+		return true;
 	}
-	return TRUE;
+	return true;
 }
