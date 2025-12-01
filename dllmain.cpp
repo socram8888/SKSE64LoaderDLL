@@ -1,13 +1,10 @@
 
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
+#include "pch.h"
+#include "utils.h"
 
-#include <algorithm>
-#include <fstream>
-#include <iostream>
-#include <iomanip>
-
-using namespace std;
+using std::string;
+using std::ofstream;
+using std::endl;
 
 static HMODULE hSkseDLL = nullptr;
 
@@ -39,6 +36,10 @@ string GetSkyrimVersion() {
 }
 
 string BuildSKSEDLLName(string version) {
+	if (version.substr(0, 4) == "1.5." && FileExists("skse64_steam_loader.dll")) {
+		return "skse64_steam_loader.dll";
+	}
+
 	string dllName = "skse64_";
 	int dotCount = 0;
 
@@ -104,20 +105,26 @@ bool LoadSKSE() {
 	LoadLibraryFail loadLibFail;
 	hSkseDLL = LoadLibraryChecked(dllName.c_str(), &loadLibFail);
 	if (!hSkseDLL) {
-		log << "failed with " << (loadLibFail.type == LoadLibraryFailType::Exception ? "exception" : "error") << " 0x" << hex << setw(8) << loadLibFail.code << endl;
+		log << "failed with "
+			<< (loadLibFail.type == LoadLibraryFailType::Exception ? "exception" : "error")
+			<< " 0x" << std::hex << loadLibFail.code << endl;
 		return false;
 	}
 
-	log << "OK" << endl << "Calling StartSKSE... ";
+	log << "OK" << endl << "Looking up first function... ";
 	log.flush();
 
-	PROC startSKSE = GetProcAddress(hSkseDLL, "StartSKSE");
-	if (!startSKSE) {
-		log << "method not found?" << endl;
+	// Get by ordinal
+	string startSKSEName;
+	PROC startSKSE;
+	if (!GetFunctionByOrdinal(hSkseDLL, 1, &startSKSEName, &startSKSE)) {
+		log << "not found?" << endl;
 		FreeLibrary(hSkseDLL);
 		hSkseDLL = nullptr;
 		return false;
 	}
+	log << "OK" << endl << "Calling " << startSKSEName << "... ";
+	log.flush();
 
 	startSKSE();
 	log << "OK " << endl << "All done!" << endl;
