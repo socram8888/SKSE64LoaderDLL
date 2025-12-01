@@ -2,4 +2,4 @@
 .vs/
 Debug/
 Release/
-version.h
+build_info.h

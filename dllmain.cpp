@@ -2,61 +2,58 @@
 #include "pch.h"
 #include "utils.h"
 #include "version.h"
+#include "build_info.h"
 
 using std::string;
 using std::ofstream;
 using std::endl;
+using std::ostringstream;
 
 static HMODULE hSkseDLL = nullptr;
 
-string GetSkyrimVersion() {
+bool GetSkyrimVersion(Version& parsedVersion) {
 	char exePath[MAX_PATH];
 	GetModuleFileNameA(NULL, exePath, sizeof(exePath));
 
 	DWORD handle = 0;
 	DWORD size = GetFileVersionInfoSizeA(exePath, &handle);
-	if (size == 0) return "";
+	if (size == 0) return false;
 
-	BYTE* buffer = new BYTE[size];
-	if (!GetFileVersionInfoA(exePath, 0, size, buffer)) {
-		delete[] buffer;
-		return "";
+	std::unique_ptr<BYTE[]> buffer(new BYTE[size]);
+	if (!GetFileVersionInfoA(exePath, 0, size, buffer.get())) {
+		return false;
 	}
 
 	char* versionPos = nullptr;
 	UINT len = 0;
 
-	if (!VerQueryValueA(buffer, "\\StringFileInfo\\040904B0\\ProductVersion", (LPVOID*)&versionPos, &len)) {
-		delete[] buffer;
-		return "";
+	if (!VerQueryValueA(buffer.get(), "\\StringFileInfo\\040904B0\\ProductVersion", (LPVOID*)&versionPos, &len)) {
+		return false;
 	}
 
-	string version(versionPos);
-	delete[] buffer;
-	return version;
+	try {
+		parsedVersion = Version(string(versionPos));
+	}
+	catch (std::exception&) {
+		return false;
+	}
+
+	return true;
 }
 
-string BuildSKSEDLLName(string version) {
-	if (version.substr(0, 4) == "1.5." && FileExists("skse64_steam_loader.dll")) {
-		return "skse64_steam_loader.dll";
-	}
-
-	string dllName = "skse64_";
-	int dotCount = 0;
-
-	for (char c : version) {
-		if (c == '.') {
-			if (dotCount == 2) break;
-			dllName += "_";
-			dotCount++;
+string BuildSKSEDLLName(const Version& version) {
+	if (version < Version(1, 6, 640)) {
+		if (FileExists("skse64_steam_loader.dll")) {
+			return "skse64_steam_loader.dll";
 		}
-		else {
-			dllName += c;
+		if (FileExists("sksevr_steam_loader.dll")) {
+			return "sksevr_steam_loader.dll";
 		}
 	}
 
-	dllName += ".dll";
-	return dllName;
+	ostringstream dllNameBuilder("skse64_");
+	dllNameBuilder << version.major << '_' << version.minor << '_' << version.patch << ".dll";
+	return dllNameBuilder.str();
 }
 
 enum class LoadLibraryFailType {
@@ -94,14 +91,14 @@ bool LoadSKSE() {
 	ofstream log("skse64_loader_dll.log");
 	log << "SKSE64 Loader DLL. Git commit: " << GIT_COMMIT << ", build time " << BUILD_TIME_UTC << endl;
 
-	string version = GetSkyrimVersion();
-	if (version.empty()) {
+	Version skyrimVersion;
+	if (!GetSkyrimVersion(skyrimVersion)) {
 		log << "Unable to determine Skyrim version" << endl;
 		return false;
 	}
-	log << "Skyrim version: " << version << endl;
+	log << "Skyrim version " << skyrimVersion << endl;
 
-	string dllName = BuildSKSEDLLName(version);
+	string dllName = BuildSKSEDLLName(skyrimVersion);
 	log << "SKSE64 DLL: " << dllName << ". Loading... ";
 	log.flush();
 

@@ -24,4 +24,4 @@ $buildTime = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
 
 #define GIT_COMMIT "$commit"
 #define BUILD_TIME_UTC "$buildTime"
-"@ | Out-File -Encoding UTF8 -Force version.h
+"@ | Out-File -Encoding UTF8 -Force build_info.h

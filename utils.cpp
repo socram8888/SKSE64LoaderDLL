@@ -3,8 +3,10 @@
 #include "utils.h"
 
 using std::string;
+using std::stringstream;
+using std::getline;
 
-bool FileExists(string path) {
+bool FileExists(const string& path) {
 	DWORD attribs = GetFileAttributesA(path.c_str());
 	return attribs != INVALID_FILE_ATTRIBUTES && !(attribs & FILE_ATTRIBUTE_DIRECTORY);
 }
