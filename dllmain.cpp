@@ -51,8 +51,8 @@ string BuildSKSEDLLName(const Version& version) {
 		}
 	}
 
-	ostringstream dllNameBuilder("skse64_");
-	dllNameBuilder << version.major << '_' << version.minor << '_' << version.patch << ".dll";
+	ostringstream dllNameBuilder;
+	dllNameBuilder << "skse64_" << version.major << '_' << version.minor << '_' << version.patch << ".dll";
 	return dllNameBuilder.str();
 }
 
@@ -99,7 +99,7 @@ bool LoadSKSE() {
 	log << "Skyrim version " << skyrimVersion << endl;
 
 	string dllName = BuildSKSEDLLName(skyrimVersion);
-	log << "SKSE64 DLL: " << dllName << ". Loading... ";
+	log << "SKSE DLL: " << dllName << ". Loading... ";
 	log.flush();
 
 	LoadLibraryFail loadLibFail;
