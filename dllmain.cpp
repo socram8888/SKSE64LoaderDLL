@@ -1,6 +1,7 @@
 
 #include "pch.h"
 #include "utils.h"
+#include "version.h"
 
 using std::string;
 using std::ofstream;
@@ -91,6 +92,8 @@ bool LoadSKSE() {
 	}
 
 	ofstream log("skse64_loader_dll.log");
+	log << "SKSE64 Loader DLL. Git commit: " << GIT_COMMIT << ", build time " << BUILD_TIME_UTC << endl;
+
 	string version = GetSkyrimVersion();
 	if (version.empty()) {
 		log << "Unable to determine Skyrim version" << endl;
