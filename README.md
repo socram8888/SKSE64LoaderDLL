@@ -29,7 +29,7 @@ As of v1.1.0, this mod has been tested and is known to work on:
 
   - Special Edition v1.5.97 on Steam
   - Anniversary Edition v1.6.1170 on Steam
-  - Anniversay Edition v1.6.1179 on GOG
+  - Anniversary Edition v1.6.1179 on GOG
 
 Other version are untested, though it should also work (eg SkyrimVR). If you got it working, please
 report it so I can add it to this list!
@@ -39,6 +39,7 @@ Installation
 
   - Follow the [SKSE64](https://www.nexusmods.com/skyrimspecialedition/mods/30379) install instructions
   - Follow the [SSE Engine Fixes](https://www.nexusmods.com/skyrimspecialedition/mods/17230) install instructions
+    (including the `d3dx9_42.dll` file - this plugin is **NOT** a replacement for it!)
   - Download the archive
   - Unpack it on your game folder
   - Now you should have `Data\DLLPlugins\!!!!SKSE64LoaderDLL.dll`
