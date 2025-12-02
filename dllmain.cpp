@@ -99,7 +99,13 @@ bool LoadSKSE() {
 	log << "Skyrim version " << skyrimVersion << endl;
 
 	string dllName = BuildSKSEDLLName(skyrimVersion);
-	log << "SKSE DLL: " << dllName << ". Loading... ";
+	log << "SKSE DLL: " << dllName << ". ";
+
+	if (GetModuleHandleA(dllName.c_str())) {
+		log << "Already loaded. Exiting!" << endl;
+		return true;
+	}
+	log << "Loading... ";
 	log.flush();
 
 	LoadLibraryFail loadLibFail;
